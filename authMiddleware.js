@@ -7,13 +7,13 @@ module.exports = function (req, res, next) {
         && op.urls.find(url => req.url.startsWith(url)))) {
         next();
     } else if (req.url === "/login" && req.method === "POST") {
-        if (req.body.username === USERNAME && req.body.password === PASSWORD) {
+        if (req.body[0].username === USERNAME && req.body[1].password === PASSWORD) {
             res.json({
                 success: true,
                 token: jwt.sign({ data: USERNAME, expiresIn: "1h" }, APP_SECRET)
             });
         } else {
-            res.json({ success: false });
+            res.json({ success: false, reqBody: req.body });
         }
         res.end();
     } else {

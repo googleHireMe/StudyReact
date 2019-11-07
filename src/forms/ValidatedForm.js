@@ -25,8 +25,7 @@ export class ValidatedForm extends Component {
 
         const stateSetterCallback = () => {
             if (Object.keys(this.state.validationErrors).length === 0) {
-                const data = Object.assign(...Object.entries(this.formElements)
-                    .map(e => ({ [e[0]]: e[1].value })))
+                const data = { ...Object.entries(this.formElements).map(e => ({ [e[0]]: e[1].value })) };
                 this.props.submitCallback(data);
             }
         };
@@ -61,7 +60,9 @@ export class ValidatedForm extends Component {
     }
     render() {
         return <React.Fragment>
+            
             {this.props.formModel.map(m => this.renderElement(m))}
+
             <div className="text-center">
                 <button 
                     className="btn btn-secondary m-1"

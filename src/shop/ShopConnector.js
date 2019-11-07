@@ -3,75 +3,51 @@ import { Switch, Route, Redirect } from "react-router-dom"
 import { connect } from "react-redux";
 import { DataTypes } from "../data/dataTypes/Types";
 import { Shop } from "./Shop";
-import { loadData, placeOrder } from "../data/actions/ActionCreators";
-import { addToCart, updateCartQuantity, removeFromCart, clearCart } from "../data/actions/CartActionCreators";
+import * as ShopActions from "../data/actions/ActionCreators";
+import * as CartActions from "../data/actions/CartActionCreators";
 import { CartDetails } from "./CartDetails";
 import { DataGetter } from "../data/remote/DataGetter";
 import { Checkout } from "./Checkout";
 import { Thanks } from "./Thanks";
 
-const mapStateToProps = (dataStore) => ({
-    ...dataStore
-})
+const mapDispatchToProps = { ...ShopActions, ...CartActions };
 
-const mapDispatchToProps = {
-    loadData, 
-    addToCart, updateCartQuantity, removeFromCart, clearCart,
-    placeOrder
-}
+class ShopConnectorContent extends Component {
 
-export const ShopConnector = connect(mapStateToProps, mapDispatchToProps)(
-    class extends Component {
-        render() {
-            return <Switch>
-                <Redirect
-                    from="/shop/products/:category"
-                    to="/shop/products/:category/1"
-                    exact={true} />
-                <Route
-                    path={"/shop/products/:category/:page"}
-                    render={(routeProps) =>
-                        <DataGetter
-                            {...this.props}
-                            {...routeProps}>
-                            <Shop
-                                {...this.props}
-                                {...routeProps}
-                            />
-                        </DataGetter>
-                    }
-                />
-                <Route
-                    path="/shop/cart"
-                    render={(routeProps) =>
-                        <CartDetails
-                            {...this.props}
-                            {...routeProps}
-                        />
-                    }
-                />
-                <Route
-                    path="/shop/checkout"
-                    render={routeProps =>
-                        <Checkout
-                            {...this.props}
-                            {...routeProps} />
-                    }
-                />
-                <Route
-                    path="/shop/thanks"
-                    render={routeProps =>
-                        <Thanks
-                            {...this.props}
-                            {...routeProps} />
-                    }
-                />
-                <Redirect to="/shop/products/all/1" />
-            </Switch>
-        }
-        componentDidMount() {
-            this.props.loadData(DataTypes.CATEGORIES);
-            //this.props.loadData(DataTypes.PRODUCTS);
+    selectComponent = (routeProps) => {
+        const wrap = (Component, Content) =>
+            <Component {...this.props} {...routeProps}>
+                {Content && wrap(Content)}
+            </Component>
+            
+        switch (routeProps.match.params.section) {
+            case "products":
+                return wrap(DataGetter, Shop);
+            case "cart":
+                return wrap(CartDetails);
+            case "checkout":
+                return wrap(Checkout);
+            case "thanks":
+                return wrap(Thanks);
+            default:
+                return <Redirect to="/shop/products/all/1" />
         }
     }
-)
+
+    componentDidMount = () => this.props.loadData(DataTypes.CATEGORIES);
+
+    render() {
+        return <Switch>
+            <Redirect
+                from="/shop/products/:category"
+                to="/shop/products/:category/1"
+                exact={true} />
+            <Route 
+                path={"/shop/:section?/:category?/:page?"}
+                render={routeProps => this.selectComponent(routeProps)} />
+        </Switch>
+    }
+
+}
+
+export const ShopConnector = connect(ds => ds, mapDispatchToProps)(ShopConnectorContent);

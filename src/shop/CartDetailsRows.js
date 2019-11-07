@@ -5,7 +5,7 @@ export class CartDetailsRows extends Component {
     handleChange = (product, event) => {
         this.props.updateQuantity(product, event.target.value);
     }
-    
+
     render() {
         if (!this.props.cart || this.props.cart.length === 0) {
             return <tr>
@@ -16,7 +16,9 @@ export class CartDetailsRows extends Component {
                 {this.props.cart.map(item =>
                     <tr key={item.product.id}>
                         <td>
-                            <input type="number" value={item.quantity}
+                            <input
+                                type="number"
+                                value={item.quantity}
                                 onChange={(ev) => this.handleChange(item.product, ev)} />
                         </td>
                         <td>{item.product.name}</td>

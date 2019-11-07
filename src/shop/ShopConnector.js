@@ -1,11 +1,12 @@
 import React, { Component } from "react";
 import { Switch, Route, Redirect } from "react-router-dom"
 import { connect } from "react-redux";
-import { DataTypes } from "../data/Types";
+import { DataTypes } from "../data/dataTypes/Types";
 import { Shop } from "./Shop";
-import { loadData } from "../data/ActionCreators";
-import { addToCart, updateCartQuantity, removeFromCart, clearCart } from "../data/CartActionCreators";
+import { loadData } from "../data/actions/ActionCreators";
+import { addToCart, updateCartQuantity, removeFromCart, clearCart } from "../data/actions/CartActionCreators";
 import { CartDetails } from "./CartDetails";
+import { DataGetter } from "../data/remote/DataGetter";
 
 const mapStateToProps = (dataStore) => ({
     ...dataStore
@@ -15,23 +16,25 @@ const mapDispatchToProps = {
     loadData, addToCart, updateCartQuantity, removeFromCart, clearCart
 }
 
-const filterProducts = (products = [], category) =>
-    (!category || category === "All")
-        ? products
-        : products.filter(p => p.category.toLowerCase() === category.toLowerCase());
-
 export const ShopConnector = connect(mapStateToProps, mapDispatchToProps)(
     class extends Component {
         render() {
             return <Switch>
+                <Redirect
+                    from="/shop/products/:category"
+                    to="/shop/products/:category/1"
+                    exact={true} />
                 <Route
-                    path="/shop/products/:category?"
+                    path={"/shop/products/:category/:page"}
                     render={(routeProps) =>
-                        <Shop
+                        <DataGetter
                             {...this.props}
-                            {...routeProps}
-                            products={filterProducts(this.props.products, routeProps.match.params.category)} 
-                        />
+                            {...routeProps}>
+                            <Shop
+                                {...this.props}
+                                {...routeProps}
+                            />
+                        </DataGetter>
                     }
                 />
                 <Route
@@ -43,12 +46,12 @@ export const ShopConnector = connect(mapStateToProps, mapDispatchToProps)(
                         />
                     }
                 />
-                <Redirect to="/shop/products" />
+                <Redirect to="/shop/products/all/1" />
             </Switch>
         }
         componentDidMount() {
             this.props.loadData(DataTypes.CATEGORIES);
-            this.props.loadData(DataTypes.PRODUCTS);
+            //this.props.loadData(DataTypes.PRODUCTS);
         }
     }
 )
